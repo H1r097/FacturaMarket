@@ -73,7 +73,7 @@ Flujo recomendado:
 5. Integrar las características aprobadas en `develop`.
 6. Al preparar una entrega, abrir un Pull Request de `develop` hacia `main`.
 
-## Primer commit y publicación en GitHub
+## Primer commit y publicación en GitHub..
 
 La carpeta de trabajo debe estar inicializada como repositorio Git y Git debe estar instalado. Sustituya la URL de ejemplo por la dirección HTTPS o SSH del repositorio creado en GitHub.
 
