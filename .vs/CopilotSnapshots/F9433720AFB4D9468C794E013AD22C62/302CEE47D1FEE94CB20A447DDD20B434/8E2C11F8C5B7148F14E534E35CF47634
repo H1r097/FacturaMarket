@@ -1,0 +1,71 @@
+﻿using ProyectoFacturaMarket.Controlador;
+using ProyectoFacturaMarket.Entidades;
+using ProyectoFacturaMarket.Formulario;
+using System;
+using System.Windows.Forms;
+
+namespace ProyectoFacturaMarket
+{
+    public partial class Form1 : Form
+    {
+        private readonly UsuarioBD usuarioBD = new UsuarioBD();
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void btnIngresar_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtUsuario.Text) || string.IsNullOrWhiteSpace(txtClave.Text))
+            {
+                MessageBox.Show("Ingrese su usuario y clave.", "Datos requeridos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                Usuario usuario = usuarioBD.ValidarLogin(txtUsuario.Text.Trim(), txtClave.Text);
+                if (usuario == null)
+                {
+                    MessageBox.Show("Las credenciales son incorrectas o el usuario está inactivo.", "No se pudo iniciar sesión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtClave.Clear();
+                    txtClave.Focus();
+                    return;
+                }
+
+                SesionUsuario.IniciarSesion(usuario);
+                Principal principal = new Principal();
+                principal.FormClosed += Principal_FormClosed;
+                principal.Show();
+                Hide();
+            }
+            catch (Exception ex)
+            {
+                SesionUsuario.CerrarSesion();
+                Show();
+                MessageBox.Show("No fue posible iniciar sesión. Verifique la conexión con la base de datos.\r\n\r\n" + ex.Message,
+                    "Error de acceso", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void Principal_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (SesionUsuario.IDUsuario == 0)
+            {
+                txtClave.Clear();
+                Show();
+                Activate();
+                txtUsuario.Focus();
+                return;
+            }
+
+            Application.Exit();
+        }
+
+        private void btnSalir_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+    }
+}

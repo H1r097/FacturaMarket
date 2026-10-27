@@ -1,0 +1,208 @@
+﻿using ProyectoFacturaMarket.Entidades;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Globalization;
+
+namespace ProyectoFacturaMarket.Controlador
+{
+    public class FacturaBD
+    {
+        private readonly Conexion conexion = new Conexion();
+
+        public string GenerarSiguienteNumeroFactura()
+        {
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                cn.Open();
+                using (SqlTransaction transaccion = cn.BeginTransaction())
+                {
+                    try
+                    {
+                        string numero = ObtenerSiguienteNumeroFactura(cn, transaccion);
+                        transaccion.Commit();
+                        return numero;
+                    }
+                    catch
+                    {
+                        transaccion.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public int RegistrarFactura(Factura factura, List<DetalleFactura> detalles)
+        {
+            if (factura == null)
+                throw new ArgumentNullException(nameof(factura));
+            if (detalles == null || detalles.Count == 0)
+                throw new ArgumentException("La factura debe tener al menos un detalle.", nameof(detalles));
+            if (factura.IdCliente <= 0 || factura.IdUsuario <= 0)
+                throw new ArgumentException("La factura requiere un cliente y un usuario válidos.", nameof(factura));
+
+            foreach (DetalleFactura detalle in detalles)
+            {
+                if (detalle == null || detalle.IDProducto <= 0 || detalle.Cantidad <= 0 || detalle.PrecioUnitario < 0)
+                    throw new ArgumentException("Cada detalle debe indicar un producto, una cantidad positiva y un precio no negativo.", nameof(detalles));
+            }
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                cn.Open();
+                using (SqlTransaction transaccion = cn.BeginTransaction())
+                {
+                    try
+                    {
+                        string numeroFactura = string.IsNullOrWhiteSpace(factura.NumeroFactura)
+                            ? ObtenerSiguienteNumeroFactura(cn, transaccion)
+                            : factura.NumeroFactura.Trim();
+
+                        VerificarExistencias(cn, transaccion, detalles);
+                        int idFactura = InsertarCabecera(cn, transaccion, factura, numeroFactura);
+
+                        foreach (DetalleFactura detalle in detalles)
+                        {
+                            InsertarDetalle(cn, transaccion, idFactura, detalle);
+                            DescontarExistencia(cn, transaccion, detalle);
+                        }
+
+                        transaccion.Commit();
+                        factura.IDFactura = idFactura;
+                        factura.NumeroFactura = numeroFactura;
+                        factura.Detalles = detalles;
+                        foreach (DetalleFactura detalle in detalles)
+                            detalle.IDFactura = idFactura;
+
+                        return idFactura;
+                    }
+                    catch
+                    {
+                        transaccion.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        private static string ObtenerSiguienteNumeroFactura(SqlConnection cn, SqlTransaction transaccion)
+        {
+            const string query = @"UPDATE dbo.ControlFactura WITH (ROWLOCK)
+                                   SET UltimoNumero = UltimoNumero + 1
+                                   OUTPUT INSERTED.UltimoNumero
+                                   WHERE Codigo = 1";
+
+            using (SqlCommand cmd = new SqlCommand(query, cn, transaccion))
+            {
+                object resultado = cmd.ExecuteScalar();
+                if (resultado == null || resultado == DBNull.Value)
+                    throw new InvalidOperationException("No existe el contador de facturas. Ejecute el script BaseDatos/MinisuperDB.sql.");
+
+                long consecutivo = Convert.ToInt64(resultado, CultureInfo.InvariantCulture);
+                return "001-001-" + consecutivo.ToString("D9", CultureInfo.InvariantCulture);
+            }
+        }
+
+        private static void VerificarExistencias(SqlConnection cn, SqlTransaction transaccion, List<DetalleFactura> detalles)
+        {
+            const string query = @"SELECT StockActual
+                                   FROM dbo.Producto WITH (UPDLOCK, ROWLOCK)
+                                   WHERE IDProducto = @IDProducto AND Estado = 1";
+
+            using (SqlCommand cmd = new SqlCommand(query, cn, transaccion))
+            {
+                SqlParameter productoId = cmd.Parameters.Add("@IDProducto", SqlDbType.Int);
+                foreach (DetalleFactura detalle in detalles)
+                {
+                    productoId.Value = detalle.IDProducto;
+                    object stock = cmd.ExecuteScalar();
+                    if (stock == null || stock == DBNull.Value)
+                        throw new InvalidOperationException("No existe un producto activo con ID " + detalle.IDProducto + ".");
+                    if (Convert.ToDecimal(stock, CultureInfo.InvariantCulture) < detalle.Cantidad)
+                        throw new InvalidOperationException("Existencias insuficientes para el producto con ID " + detalle.IDProducto + ".");
+                }
+            }
+        }
+
+        private static int InsertarCabecera(SqlConnection cn, SqlTransaction transaccion, Factura factura, string numeroFactura)
+        {
+            const string query = @"INSERT INTO dbo.Factura
+                                       (NumeroFactura, FechaFactura, IdCliente, IdUsuario, Subtotal0, Subtotal15,
+                                        Descuento, TotalIva, TotalPagar)
+                                   VALUES
+                                       (@NumeroFactura, @FechaFactura, @IdCliente, @IdUsuario, @Subtotal0, @Subtotal15,
+                                        @Descuento, @TotalIva, @TotalPagar);
+                                   SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            using (SqlCommand cmd = new SqlCommand(query, cn, transaccion))
+            {
+                cmd.Parameters.Add("@NumeroFactura", SqlDbType.NVarChar, 30).Value = numeroFactura;
+                cmd.Parameters.Add("@FechaFactura", SqlDbType.DateTime).Value = factura.FechaFactura;
+                cmd.Parameters.Add("@IdCliente", SqlDbType.Int).Value = factura.IdCliente;
+                cmd.Parameters.Add("@IdUsuario", SqlDbType.Int).Value = factura.IdUsuario;
+                cmd.Parameters.Add("@Subtotal0", SqlDbType.Decimal).Value = factura.Subtotal0;
+                cmd.Parameters["@Subtotal0"].Precision = 18;
+                cmd.Parameters["@Subtotal0"].Scale = 2;
+                cmd.Parameters.Add("@Subtotal15", SqlDbType.Decimal).Value = factura.Subtotal15;
+                cmd.Parameters["@Subtotal15"].Precision = 18;
+                cmd.Parameters["@Subtotal15"].Scale = 2;
+                cmd.Parameters.Add("@Descuento", SqlDbType.Decimal).Value = factura.Descuento;
+                cmd.Parameters["@Descuento"].Precision = 18;
+                cmd.Parameters["@Descuento"].Scale = 2;
+                cmd.Parameters.Add("@TotalIva", SqlDbType.Decimal).Value = factura.TotalIva;
+                cmd.Parameters["@TotalIva"].Precision = 18;
+                cmd.Parameters["@TotalIva"].Scale = 2;
+                cmd.Parameters.Add("@TotalPagar", SqlDbType.Decimal).Value = factura.TotalPagar;
+                cmd.Parameters["@TotalPagar"].Precision = 18;
+                cmd.Parameters["@TotalPagar"].Scale = 2;
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        private static void InsertarDetalle(SqlConnection cn, SqlTransaction transaccion, int idFactura, DetalleFactura detalle)
+        {
+            const string query = @"INSERT INTO dbo.DetalleFactura
+                                       (IDFactura, IDProducto, Descripcion, Cantidad, PrecioUnitario, AplicaIva)
+                                   VALUES
+                                       (@IDFactura, @IDProducto, @Descripcion, @Cantidad, @PrecioUnitario, @AplicaIva)";
+            string descripcion = detalle.Descripcion;
+            if (string.IsNullOrWhiteSpace(descripcion) && detalle.Producto != null)
+                descripcion = detalle.Producto.NombreProducto;
+            if (string.IsNullOrWhiteSpace(descripcion))
+                throw new ArgumentException("Cada detalle debe incluir la descripción del producto.", nameof(detalle));
+
+            using (SqlCommand cmd = new SqlCommand(query, cn, transaccion))
+            {
+                cmd.Parameters.Add("@IDFactura", SqlDbType.Int).Value = idFactura;
+                cmd.Parameters.Add("@IDProducto", SqlDbType.Int).Value = detalle.IDProducto;
+                cmd.Parameters.Add("@Descripcion", SqlDbType.NVarChar, 150).Value = descripcion;
+                cmd.Parameters.Add("@Cantidad", SqlDbType.Decimal).Value = detalle.Cantidad;
+                cmd.Parameters["@Cantidad"].Precision = 18;
+                cmd.Parameters["@Cantidad"].Scale = 3;
+                cmd.Parameters.Add("@PrecioUnitario", SqlDbType.Decimal).Value = detalle.PrecioUnitario;
+                cmd.Parameters["@PrecioUnitario"].Precision = 18;
+                cmd.Parameters["@PrecioUnitario"].Scale = 2;
+                cmd.Parameters.Add("@AplicaIva", SqlDbType.Bit).Value = detalle.AplicaIva;
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private static void DescontarExistencia(SqlConnection cn, SqlTransaction transaccion, DetalleFactura detalle)
+        {
+            const string query = @"UPDATE dbo.Producto
+                                   SET StockActual = StockActual - @Cantidad
+                                   WHERE IDProducto = @IDProducto AND Estado = 1 AND StockActual >= @Cantidad";
+
+            using (SqlCommand cmd = new SqlCommand(query, cn, transaccion))
+            {
+                cmd.Parameters.Add("@IDProducto", SqlDbType.Int).Value = detalle.IDProducto;
+                cmd.Parameters.Add("@Cantidad", SqlDbType.Decimal).Value = detalle.Cantidad;
+                cmd.Parameters["@Cantidad"].Precision = 18;
+                cmd.Parameters["@Cantidad"].Scale = 3;
+                if (cmd.ExecuteNonQuery() != 1)
+                    throw new InvalidOperationException("No se pudo descontar la existencia del producto con ID " + detalle.IDProducto + ".");
+            }
+        }
+    }
+}

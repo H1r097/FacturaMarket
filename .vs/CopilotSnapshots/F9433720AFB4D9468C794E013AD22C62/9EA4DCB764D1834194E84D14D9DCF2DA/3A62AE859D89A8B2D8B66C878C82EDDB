@@ -1,0 +1,267 @@
+﻿using ProyectoFacturaMarket.Controlador;
+using ProyectoFacturaMarket.Entidades;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace ProyectoFacturaMarket.Formulario
+{
+    public partial class FrmProductos : Form
+    {
+        private readonly CategoriaBD categoriaBD = new CategoriaBD();
+        private readonly ProductoDB productoDB = new ProductoDB();
+        private int idProductoSeleccionado;
+
+        public FrmProductos()
+        {
+            InitializeComponent();
+            Load += FrmProductos_Load;
+            dgvProductos.SelectionChanged += DgvProductos_SelectionChanged;
+            btnGuardar.Click += BtnGuardar_Click;
+            btnModificar.Click += BtnModificar_Click;
+            btnEliminar.Click += BtnEliminar_Click;
+            btnLimpiar.Click += BtnLimpiar_Click;
+
+            bool puedeAdministrar = SesionUsuario.EsAdmin;
+            btnGuardar.Enabled = puedeAdministrar;
+            btnModificar.Enabled = puedeAdministrar;
+            btnEliminar.Enabled = puedeAdministrar;
+        }
+
+        private void FrmProductos_Load(object sender, EventArgs e)
+        {
+            CargarDatos();
+        }
+
+        private void CargarDatos()
+        {
+            try
+            {
+                List<Categoria> categorias = categoriaBD.ListarCategorias();
+                cmbCategoria.DataSource = null;
+                cmbCategoria.DisplayMember = "NombreCategoria";
+                cmbCategoria.ValueMember = "IDCategoria";
+                cmbCategoria.DataSource = categorias;
+
+                List<Producto> productos = productoDB.ListarProductos();
+                dgvProductos.DataSource = null;
+                dgvProductos.DataSource = productos.Select(p => new ProductoFila
+                {
+                    IDProducto = p.IDProducto,
+                    NombreProducto = p.NombreProducto,
+                    NombreCategoria = p.Categoria == null ? string.Empty : p.Categoria.NombreCategoria,
+                    PrecioCosto = p.PrecioCosto,
+                    PrecioVenta = p.PrecioVenta,
+                    StockActual = p.StockActual,
+                    StockMinimo = p.StockMinimo,
+                    AplicaIva = p.AplicaIva
+                }).ToList();
+                dgvProductos.ClearSelection();
+                LimpiarCampos();
+            }
+            catch (Exception ex)
+            {
+                MostrarError("cargar productos y categorías", ex);
+            }
+        }
+
+        private void DgvProductos_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dgvProductos.SelectedRows.Count == 0)
+                return;
+
+            ProductoFila fila = dgvProductos.SelectedRows[0].DataBoundItem as ProductoFila;
+            if (fila == null)
+                return;
+
+            idProductoSeleccionado = fila.IDProducto;
+            txtNombreProducto.Text = fila.NombreProducto;
+            txtPrecioCosto.Text = fila.PrecioCosto.ToString(CultureInfo.CurrentCulture);
+            txtPrecioVenta.Text = fila.PrecioVenta.ToString(CultureInfo.CurrentCulture);
+            txtStockActual.Text = fila.StockActual.ToString(CultureInfo.CurrentCulture);
+            txtStockMinimo.Text = fila.StockMinimo.ToString(CultureInfo.CurrentCulture);
+            chkAplicaIva.Checked = fila.AplicaIva;
+
+            Producto producto = productoDB.ListarProductos().FirstOrDefault(p => p.IDProducto == fila.IDProducto);
+            if (producto != null)
+                cmbCategoria.SelectedValue = producto.IDCategoria;
+        }
+
+        private void BtnGuardar_Click(object sender, EventArgs e)
+        {
+            Producto producto;
+            if (!IntentarCrearProducto(out producto))
+                return;
+
+            try
+            {
+                if (productoDB.InsertarProducto(producto))
+                {
+                    MessageBox.Show("El producto se guardó correctamente.", "Productos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    CargarDatos();
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarError("guardar el producto", ex);
+            }
+        }
+
+        private void BtnModificar_Click(object sender, EventArgs e)
+        {
+            if (idProductoSeleccionado <= 0)
+            {
+                MessageBox.Show("Seleccione un producto para modificar.", "Selección requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            Producto producto;
+            if (!IntentarCrearProducto(out producto))
+                return;
+            producto.IDProducto = idProductoSeleccionado;
+
+            try
+            {
+                if (productoDB.ModificarProducto(producto))
+                {
+                    MessageBox.Show("El producto se modificó correctamente.", "Productos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    CargarDatos();
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarError("modificar el producto", ex);
+            }
+        }
+
+        private void BtnEliminar_Click(object sender, EventArgs e)
+        {
+            if (idProductoSeleccionado <= 0)
+            {
+                MessageBox.Show("Seleccione un producto para eliminar.", "Selección requerida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            DialogResult confirmacion = MessageBox.Show(
+                "¿Desea desactivar el producto seleccionado?",
+                "Confirmar desactivación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+            if (confirmacion != DialogResult.Yes)
+                return;
+
+            try
+            {
+                if (productoDB.EliminarLogicoProducto(idProductoSeleccionado))
+                {
+                    MessageBox.Show("El producto se desactivó correctamente.", "Productos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    CargarDatos();
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarError("desactivar el producto", ex);
+            }
+        }
+
+        private bool IntentarCrearProducto(out Producto producto)
+        {
+            producto = null;
+            string nombre = txtNombreProducto.Text.Trim();
+            if (nombre.Length == 0)
+            {
+                MessageBox.Show("Ingrese el nombre del producto.", "Dato requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombreProducto.Focus();
+                return false;
+            }
+
+            if (cmbCategoria.SelectedValue == null || !(cmbCategoria.SelectedValue is int))
+            {
+                MessageBox.Show("Seleccione una categoría activa.", "Dato requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cmbCategoria.Focus();
+                return false;
+            }
+
+            decimal precioCosto;
+            decimal precioVenta;
+            decimal stockActual;
+            decimal stockMinimo;
+            if (!decimal.TryParse(txtPrecioCosto.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioCosto) || precioCosto < 0)
+            {
+                MessageBox.Show("El precio de costo debe ser un número igual o mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPrecioCosto.Focus();
+                return false;
+            }
+            if (!decimal.TryParse(txtPrecioVenta.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioVenta) || precioVenta <= 0)
+            {
+                MessageBox.Show("El precio de venta debe ser un número mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPrecioVenta.Focus();
+                return false;
+            }
+            if (!decimal.TryParse(txtStockActual.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out stockActual) || stockActual < 0)
+            {
+                MessageBox.Show("El stock actual debe ser un número igual o mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtStockActual.Focus();
+                return false;
+            }
+            if (!decimal.TryParse(txtStockMinimo.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out stockMinimo) || stockMinimo < 0)
+            {
+                MessageBox.Show("El stock mínimo debe ser un número igual o mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtStockMinimo.Focus();
+                return false;
+            }
+
+            producto = new Producto
+            {
+                NombreProducto = nombre,
+                IDCategoria = (int)cmbCategoria.SelectedValue,
+                PrecioCosto = precioCosto,
+                PrecioVenta = precioVenta,
+                StockActual = stockActual,
+                StockMinimo = stockMinimo,
+                AplicaIva = chkAplicaIva.Checked,
+                Estado = true
+            };
+            return true;
+        }
+
+        private void BtnLimpiar_Click(object sender, EventArgs e)
+        {
+            LimpiarCampos();
+            dgvProductos.ClearSelection();
+        }
+
+        private void LimpiarCampos()
+        {
+            idProductoSeleccionado = 0;
+            txtNombreProducto.Clear();
+            txtPrecioCosto.Clear();
+            txtPrecioVenta.Clear();
+            txtStockActual.Clear();
+            txtStockMinimo.Clear();
+            chkAplicaIva.Checked = false;
+            if (cmbCategoria.Items.Count > 0)
+                cmbCategoria.SelectedIndex = 0;
+        }
+
+        private static void MostrarError(string operacion, Exception ex)
+        {
+            MessageBox.Show("No fue posible " + operacion + ":\r\n" + ex.Message,
+                "Error de base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private sealed class ProductoFila
+        {
+            public int IDProducto { get; set; }
+            public string NombreProducto { get; set; }
+            public string NombreCategoria { get; set; }
+            public decimal PrecioCosto { get; set; }
+            public decimal PrecioVenta { get; set; }
+            public decimal StockActual { get; set; }
+            public decimal StockMinimo { get; set; }
+            public bool AplicaIva { get; set; }
+        }
+    }
+}

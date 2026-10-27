@@ -1,0 +1,123 @@
+﻿using ProyectoFacturaMarket.Entidades;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace ProyectoFacturaMarket.Controlador
+{
+    public class ClienteBD
+    {
+        private readonly Conexion conexion = new Conexion();
+
+        public Cliente ObtenerConsumidorFinal()
+        {
+            const string identificacion = "9999999999999";
+            Cliente cliente = BuscarPorIdentificacion(identificacion);
+            if (cliente != null)
+                return cliente;
+
+            int idCliente = InsertarCliente(new Cliente
+            {
+                Identificacion = identificacion,
+                TipoIdentificacion = "Consumidor final",
+                NombreCliente = "Consumidor",
+                ApellidoCliente = "Final",
+                Direccion = string.Empty,
+                Telefono = string.Empty
+            });
+            return BuscarPorIdentificacion(identificacion) ?? new Cliente
+            {
+                IDCliente = idCliente,
+                Identificacion = identificacion,
+                TipoIdentificacion = "Consumidor final",
+                NombreCliente = "Consumidor",
+                ApellidoCliente = "Final"
+            };
+        }
+
+        public Cliente BuscarPorIdentificacion(string identificacion)
+        {
+            const string query = @"SELECT IDCliente, Identificacion, TipoIdentificacion, NombreCliente,
+                                         ApellidoCliente, Direccion, Telefono
+                                  FROM dbo.Cliente
+                                  WHERE Identificacion = @Identificacion";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.Parameters.Add("@Identificacion", SqlDbType.NVarChar, 20).Value = identificacion.Trim();
+                cn.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (!dr.Read())
+                        return null;
+
+                    return LeerCliente(dr);
+                }
+            }
+        }
+
+        public int InsertarCliente(Cliente cliente)
+        {
+            const string query = @"INSERT INTO dbo.Cliente
+                                       (Identificacion, TipoIdentificacion, NombreCliente, ApellidoCliente, Direccion, Telefono)
+                                   VALUES
+                                       (@Identificacion, @TipoIdentificacion, @NombreCliente, @ApellidoCliente, @Direccion, @Telefono);
+                                   SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                AgregarParametrosCliente(cmd, cliente);
+                cn.Open();
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        public List<Cliente> ListarClientes()
+        {
+            List<Cliente> clientes = new List<Cliente>();
+            const string query = @"SELECT IDCliente, Identificacion, TipoIdentificacion, NombreCliente,
+                                         ApellidoCliente, Direccion, Telefono
+                                  FROM dbo.Cliente
+                                  ORDER BY ApellidoCliente, NombreCliente";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cn.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                        clientes.Add(LeerCliente(dr));
+                }
+            }
+
+            return clientes;
+        }
+
+        private static Cliente LeerCliente(SqlDataReader dr)
+        {
+            return new Cliente
+            {
+                IDCliente = dr.GetInt32(0),
+                Identificacion = dr.GetString(1),
+                TipoIdentificacion = dr.GetString(2),
+                NombreCliente = dr.GetString(3),
+                ApellidoCliente = dr.GetString(4),
+                Direccion = dr.GetString(5),
+                Telefono = dr.GetString(6)
+            };
+        }
+
+        private static void AgregarParametrosCliente(SqlCommand cmd, Cliente cliente)
+        {
+            cmd.Parameters.Add("@Identificacion", SqlDbType.NVarChar, 20).Value = cliente.Identificacion.Trim();
+            cmd.Parameters.Add("@TipoIdentificacion", SqlDbType.NVarChar, 30).Value = cliente.TipoIdentificacion.Trim();
+            cmd.Parameters.Add("@NombreCliente", SqlDbType.NVarChar, 100).Value = cliente.NombreCliente.Trim();
+            cmd.Parameters.Add("@ApellidoCliente", SqlDbType.NVarChar, 100).Value = cliente.ApellidoCliente.Trim();
+            cmd.Parameters.Add("@Direccion", SqlDbType.NVarChar, 250).Value = cliente.Direccion ?? string.Empty;
+            cmd.Parameters.Add("@Telefono", SqlDbType.NVarChar, 30).Value = cliente.Telefono ?? string.Empty;
+        }
+    }
+}

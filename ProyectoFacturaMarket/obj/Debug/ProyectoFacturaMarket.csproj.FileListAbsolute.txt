@@ -1,0 +1,13 @@
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\bin\Debug\ProyectoFacturaMarket.exe.config
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\bin\Debug\ProyectoFacturaMarket.exe
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\bin\Debug\ProyectoFacturaMarket.pdb
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.csproj.AssemblyReference.cache
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.Formulario.Principal.resources
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.Properties.Resources.resources
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.csproj.GenerateResource.cache
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.csproj.CoreCompileInputs.cache
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.exe
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\ProyectoFacturaMarket.pdb
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\bin\Debug\System.Data.SqlClient.dll
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\bin\Debug\System.Data.SqlClient.xml
+C:\Users\TomJara\source\repos\ProyectoFacturaMarket\ProyectoFacturaMarket\obj\Debug\Proyecto.9408E4A9.Up2Date

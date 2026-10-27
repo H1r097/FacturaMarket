@@ -1,0 +1,86 @@
+﻿using ProyectoFacturaMarket.Entidades;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+
+namespace ProyectoFacturaMarket.Controlador
+{
+    public class CategoriaBD
+    {
+        private readonly Conexion conexion = new Conexion();
+
+        public List<Categoria> ListarCategorias()
+        {
+            List<Categoria> categorias = new List<Categoria>();
+            const string query = @"SELECT IDCategoria, NombreCategoria, Estado
+                                   FROM dbo.Categoria
+                                   WHERE Estado = 1
+                                   ORDER BY NombreCategoria";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cn.Open();
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        categorias.Add(new Categoria
+                        {
+                            IDCategoria = dr.GetInt32(0),
+                            NombreCategoria = dr.GetString(1),
+                            Estado = dr.GetBoolean(2)
+                        });
+                    }
+                }
+            }
+
+            return categorias;
+        }
+
+        public bool InsertarCategoria(Categoria categoria)
+        {
+            const string query = @"INSERT INTO dbo.Categoria (NombreCategoria, Estado)
+                                   VALUES (@NombreCategoria, @Estado)";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.Parameters.Add("@NombreCategoria", SqlDbType.NVarChar, 100).Value = categoria.NombreCategoria.Trim();
+                cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = categoria.Estado;
+                cn.Open();
+                return cmd.ExecuteNonQuery() == 1;
+            }
+        }
+
+        public bool ModificarCategoria(Categoria categoria)
+        {
+            const string query = @"UPDATE dbo.Categoria
+                                   SET NombreCategoria = @NombreCategoria, Estado = @Estado
+                                   WHERE IDCategoria = @IDCategoria";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.Parameters.Add("@IDCategoria", SqlDbType.Int).Value = categoria.IDCategoria;
+                cmd.Parameters.Add("@NombreCategoria", SqlDbType.NVarChar, 100).Value = categoria.NombreCategoria.Trim();
+                cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = categoria.Estado;
+                cn.Open();
+                return cmd.ExecuteNonQuery() == 1;
+            }
+        }
+
+        public bool DesactivarCategoria(int idCategoria)
+        {
+            const string query = "UPDATE dbo.Categoria SET Estado = 0 WHERE IDCategoria = @IDCategoria";
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.Parameters.Add("@IDCategoria", SqlDbType.Int).Value = idCategoria;
+                cn.Open();
+                return cmd.ExecuteNonQuery() == 1;
+            }
+        }
+    }
+}

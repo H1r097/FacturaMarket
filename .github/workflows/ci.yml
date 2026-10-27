@@ -1,0 +1,32 @@
+name: CI - Compilación
+
+"on":
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Windows Forms (.NET Framework 4.7.2)
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Restaurar dependencias NuGet
+        run: nuget restore .\ProyectoFacturaMarket\packages.config -PackagesDirectory .\packages -NonInteractive
+
+      - name: Configurar MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Compilar solución en Release
+        run: msbuild .\ProyectoFacturaMarket.slnx -m -p:Configuration=Release -p:Platform="Any CPU"

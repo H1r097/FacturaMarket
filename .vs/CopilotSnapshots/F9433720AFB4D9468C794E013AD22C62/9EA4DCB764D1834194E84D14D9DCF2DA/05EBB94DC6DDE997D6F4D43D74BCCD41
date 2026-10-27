@@ -1,0 +1,49 @@
+﻿using ProyectoFacturaMarket.Entidades;
+using System;
+using System.Windows.Forms;
+
+namespace ProyectoFacturaMarket.Formulario
+{
+    public partial class Principal : Form
+    {
+        public Principal()
+        {
+            InitializeComponent();
+            Load += Principal_Load;
+            inicioToolStripMenuItem.Click += FacturacionToolStripMenuItem_Click;
+            productosToolStripMenuItem.Click += ModuloPendienteToolStripMenuItem_Click;
+            categoriasToolStripMenuItem.Click += ModuloPendienteToolStripMenuItem_Click;
+            inventarioToolStripMenuItem.Click += ModuloPendienteToolStripMenuItem_Click;
+            clientesToolStripMenuItem.Click += ModuloPendienteToolStripMenuItem_Click;
+            usuariosToolStripMenuItem.Click += ModuloPendienteToolStripMenuItem_Click;
+            cerrarSesionToolStripMenuItem.Click += CerrarSesionToolStripMenuItem_Click;
+        }
+
+        private void Principal_Load(object sender, EventArgs e)
+        {
+            Text = "FacturaMarket - Punto de Venta | Usuario: " + SesionUsuario.NombreUsuario + " (" + SesionUsuario.Rol + ")";
+
+            bool esAdministrador = SesionUsuario.EsAdmin;
+            usuariosToolStripMenuItem.Visible = esAdministrador;
+            categoriasToolStripMenuItem.Visible = esAdministrador;
+        }
+
+        private void FacturacionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Ya se encuentra en el módulo de facturación.", "Facturación", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ModuloPendienteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripItem item = sender as ToolStripItem;
+            string nombreModulo = item == null ? "seleccionado" : item.Text;
+            MessageBox.Show("El módulo " + nombreModulo + " estará disponible en una etapa posterior.", "Módulo pendiente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void CerrarSesionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SesionUsuario.CerrarSesion();
+            Close();
+        }
+    }
+}

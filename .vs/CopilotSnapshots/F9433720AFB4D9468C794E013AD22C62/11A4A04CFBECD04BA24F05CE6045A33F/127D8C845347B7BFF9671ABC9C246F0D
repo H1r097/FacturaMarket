@@ -1,0 +1,161 @@
+﻿using ProyectoFacturaMarket.Entidades;
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ProyectoFacturaMarket.Controlador
+{
+    public class UsuarioBD
+    {
+        private readonly Conexion conexion = new Conexion();
+
+        //Validar Login de acceso
+        public Usuario ValidarLogin(string username, string contrasena)
+        {
+            Usuario usuario = null;
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                // iniciar sesión a usuarios activos 
+                string query = @"SELECT IDUsuario, NombreUsuario, Cedula, Username, Contrasena, Rol, Estado 
+                                 FROM Usuario 
+                                 WHERE Username = @Username AND Contrasena = @Contrasena AND Estado = 1";
+
+                SqlCommand cmd = new SqlCommand(query, cn);
+                cmd.Parameters.AddWithValue("@Username", username.Trim());
+                cmd.Parameters.AddWithValue("@Contrasena", contrasena.Trim());
+
+                try
+                {
+                    cn.Open();
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            usuario = new Usuario
+                            {
+                                IDUsuario = Convert.ToInt32(dr["IDUsuario"]),
+                                NombreUsuario = dr["NombreUsuario"].ToString(),
+                                Cedula = dr["Cedula"].ToString(),
+                                Username = dr["Username"].ToString(),
+                                Contrasena = dr["Contrasena"].ToString(),
+                                Rol = dr["Rol"].ToString(),
+                                Estado = Convert.ToBoolean(dr["Estado"])
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error al validar las credenciales de usuario: " + ex.Message);
+                }
+            }
+
+            return usuario;
+        }
+
+        // Listar todos los usuarios para Administrador
+        public List<Usuario> ListarUsuarios()
+        {
+            List<Usuario> lista = new List<Usuario>();
+
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                string query = "SELECT IDUsuario, NombreUsuario, Cedula, Username, Rol, Estado FROM Usuario";
+                SqlCommand cmd = new SqlCommand(query, cn);
+
+                try
+                {
+                    cn.Open();
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            lista.Add(new Usuario
+                            {
+                                IDUsuario = Convert.ToInt32(dr["IDUsuario"]),
+                                NombreUsuario = dr["NombreUsuario"].ToString(),
+                                Cedula = dr["Cedula"].ToString(),
+                                Username = dr["Username"].ToString(),
+                                Rol = dr["Rol"].ToString(),
+                                Estado = Convert.ToBoolean(dr["Estado"])
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error al listar los usuarios: " + ex.Message);
+                }
+            }
+
+            return lista;
+        }
+
+        //Registrar un nuevo empleado frmusuario pa registrar
+        public bool InsertarUsuario(Usuario u)
+        {
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                string query = @"INSERT INTO Usuario (NombreUsuario, Cedula, Username, Contrasena, Rol, Estado) 
+                                 VALUES (@Nombre, @Cedula, @Username, @Contrasena, @Rol, @Estado)";
+
+                SqlCommand cmd = new SqlCommand(query, cn);
+                cmd.Parameters.AddWithValue("@Nombre", u.NombreUsuario);
+                cmd.Parameters.AddWithValue("@Cedula", u.Cedula);
+                cmd.Parameters.AddWithValue("@Username", u.Username);
+                cmd.Parameters.AddWithValue("@Contrasena", u.Contrasena);
+                cmd.Parameters.AddWithValue("@Rol", u.Rol);
+                cmd.Parameters.AddWithValue("@Estado", u.Estado ? 1 : 0);
+
+                try
+                {
+                    cn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error al registrar el usuario: " + ex.Message);
+                }
+            }
+        }
+
+        //Modificar datos de un empleado
+        public bool ModificarUsuario(Usuario u)
+        {
+            using (SqlConnection cn = conexion.ObtenerConexion())
+            {
+                string query = @"UPDATE Usuario 
+                                 SET NombreUsuario = @Nombre, 
+                                     Cedula = @Cedula, 
+                                     Username = @Username, 
+                                     Contrasena = @Contrasena, 
+                                     Rol = @Rol, 
+                                     Estado = @Estado 
+                                 WHERE IDUsuario = @IDUsuario";
+
+                SqlCommand cmd = new SqlCommand(query, cn);
+                cmd.Parameters.AddWithValue("@IDUsuario", u.IDUsuario);
+                cmd.Parameters.AddWithValue("@Nombre", u.NombreUsuario);
+                cmd.Parameters.AddWithValue("@Cedula", u.Cedula);
+                cmd.Parameters.AddWithValue("@Username", u.Username);
+                cmd.Parameters.AddWithValue("@Contrasena", u.Contrasena);
+                cmd.Parameters.AddWithValue("@Rol", u.Rol);
+                cmd.Parameters.AddWithValue("@Estado", u.Estado ? 1 : 0);
+
+                try
+                {
+                    cn.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error al modificar el usuario: " + ex.Message);
+                }
+            }
+        }
+    }
+}
