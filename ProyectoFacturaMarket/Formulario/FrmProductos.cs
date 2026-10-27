@@ -188,13 +188,13 @@ namespace ProyectoFacturaMarket.Formulario
             decimal stockMinimo;
             if (!decimal.TryParse(txtPrecioCosto.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioCosto) || precioCosto < 0)
             {
-                MessageBox.Show("El precio de costo debe ser un número igual o mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("El precio de costo debe ser un numero igual o mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtPrecioCosto.Focus();
                 return false;
             }
             if (!decimal.TryParse(txtPrecioVenta.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out precioVenta) || precioVenta <= 0)
             {
-                MessageBox.Show("El precio de venta debe ser un número mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("El precio de venta debe ser un numero mayor que cero.", "Dato inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtPrecioVenta.Focus();
                 return false;
             }

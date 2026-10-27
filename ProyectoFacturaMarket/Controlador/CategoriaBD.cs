@@ -37,7 +37,7 @@ namespace ProyectoFacturaMarket.Controlador
 
             return categorias;
         }
-
+        // categorias de 
         public bool InsertarCategoria(Categoria categoria)
         {
             const string query = @"INSERT INTO dbo.Categoria (NombreCategoria, Estado)

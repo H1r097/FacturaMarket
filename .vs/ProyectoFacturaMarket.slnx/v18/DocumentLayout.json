@@ -3,11 +3,19 @@
   "WorkspaceRootPath": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|c:\\users\\tomjara\\source\\repos\\proyectofacturamarket\\proyectofacturamarket\\formulario\\frmproductos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|c:\\users\\tomjara\\source\\repos\\proyectofacturamarket\\proyectofacturamarket\\controlador\\categoriabd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|solutionrelative:proyectofacturamarket\\controlador\\categoriabd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|c:\\users\\tomjara\\source\\repos\\proyectofacturamarket\\proyectofacturamarket\\formulario\\frmproductos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|solutionrelative:proyectofacturamarket\\formulario\\frmproductos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\proyectofacturamarket\\formulario\\frmproductos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|solutionrelative:proyectofacturamarket\\formulario\\frmproductos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|c:\\users\\tomjara\\source\\repos\\proyectofacturamarket\\proyectofacturamarket\\entidades\\producto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\proyectofacturamarket\\entidades\\producto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{81FB1529-C2F8-414F-8D44-72C01DDC4D48}|ProyectoFacturaMarket\\ProyectoFacturaMarket.csproj|solutionrelative:proyectofacturamarket\\entidades\\producto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -18,11 +26,41 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "CategoriaBD.cs",
+              "DocumentMoniker": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Controlador\\CategoriaBD.cs",
+              "RelativeDocumentMoniker": "ProyectoFacturaMarket\\Controlador\\CategoriaBD.cs",
+              "ToolTip": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Controlador\\CategoriaBD.cs",
+              "RelativeToolTip": "ProyectoFacturaMarket\\Controlador\\CategoriaBD.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAYwCQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-27T02:34:15.126Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FrmProductos.cs",
+              "DocumentMoniker": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
+              "RelativeDocumentMoniker": "ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
+              "ToolTip": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
+              "RelativeToolTip": "ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAL4AAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-27T02:33:21.42Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "FrmProductos.cs [Dise\u00F1o]",
               "DocumentMoniker": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
               "RelativeDocumentMoniker": "ProyectoFacturaMarket\\Formulario\\FrmProductos.cs",
@@ -34,7 +72,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Producto.cs",
               "DocumentMoniker": "C:\\Users\\TomJara\\source\\repos\\ProyectoFacturaMarket\\ProyectoFacturaMarket\\Entidades\\Producto.cs",
               "RelativeDocumentMoniker": "ProyectoFacturaMarket\\Entidades\\Producto.cs",
@@ -42,12 +80,7 @@
               "RelativeToolTip": "ProyectoFacturaMarket\\Entidades\\Producto.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-25T23:33:56.662Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+              "WhenOpened": "2026-10-25T23:33:56.662Z"
             }
           ]
         }
